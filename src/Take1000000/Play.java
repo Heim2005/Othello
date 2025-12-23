@@ -7,6 +7,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -14,6 +15,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import org.junit.Test;
 
@@ -24,6 +26,8 @@ import java.net.Socket;
 import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
+
+import static javafx.geometry.Pos.TOP_CENTER;
 
 
 public class Play extends Application {
@@ -196,6 +200,8 @@ public class Play extends Application {
 
                 Platform.runLater(() -> waitingScreen(false));
 
+                Platform.runLater(this::rules);
+
                 boolean playLoop = true;
 
                 while (playLoop) {
@@ -203,8 +209,13 @@ public class Play extends Application {
                     toServer.writeInt(999);
                     fromServer.readInt();
 
-                    endConditions(toServer, fromServer);
+                    Platform.runLater(() -> board.checkPlayable(piece.getPlayerNum()));
+                    //board.checkPlayable(piece.getPlayerNum());
 
+                    toServer.writeInt(999);
+                    fromServer.readInt();
+
+                    endConditions(toServer, fromServer);
 
                     Platform.runLater(() -> {
 
@@ -243,15 +254,6 @@ public class Play extends Application {
                         }
 
                     });
-
-
-
-                    toServer.writeInt(999);
-                    fromServer.readInt();
-
-
-                    Platform.runLater(() -> board.checkPlayable(piece.getPlayerNum()));
-                    //board.checkPlayable(piece.getPlayerNum());
 
                     toServer.writeInt(999);
                     fromServer.readInt();
@@ -617,32 +619,34 @@ public class Play extends Application {
 
     public void rules() {
 
-        Rectangle rec = new Rectangle(800, 900);
-        rec.setFill(new Color(0.73, 0.67, 0.93, 0.3));
-        Text tex = new Text("Waiting For Turn");
-        tex.setTranslateY(20);
-        tex.setFont(Font.font("Comic Sans MS", FontWeight.EXTRA_BOLD, 40));
-        tex.setFill(new Color(0.25, 0.2, 0.45, 0.5));
+        Rectangle rRec = new Rectangle(800, 900);
+        rRec.setFill(new Color(0.73, 0.67, 0.93, 0.93));
+        Text rtex = new Text("Rules");
+        rtex.setTranslateY(-350);
+        rtex.setFont(Font.font("Comic Sans MS", FontWeight.EXTRA_BOLD, 40));
+        rtex.setFill(new Color(0.25, 0.2, 0.45, 0.8));
+        Text tRule = new Text("The goal of the game is to have more of your \ncolored chips on the board than your opponent.\n\n" +
+                "Players take turns placing their chips \non empty spaces on the board.\n" +
+                "The placed chip must have the opponents \nchips between their newly placed chip and one \nalready on the board (in a straight line).\n " +
+                "All of the opponents chips between yours \nwill be flipped to your color chip.\n\n" +
+                "The game ends when one of the players \ncannot make another move.\n" +
+                "The total amount of each players chips \nare then counted up, and the one \nwith the most is the winner.\n\n" +
+                "Click anywhere to begin."
+        );
+        tRule.setFont(Font.font("Comic Sans MS", FontWeight.NORMAL, 25));
+        tRule.setFill(new Color(0.25, 0.2, 0.45, 0.8));
+        tRule.setTextAlignment(TextAlignment.CENTER);
 
-        turnWait.getChildren().addAll(rec, tex);
+        ruleScreen.getChildren().addAll(rRec, rtex, tRule);
 
-        root.getChildren().add(turnWait);
+        root.getChildren().add(ruleScreen);
 
+        ruleScreen.setOnMouseClicked(e -> root.getChildren().remove(ruleScreen));
     }
 
     public void rules(boolean up) {
 
-        if (up) {
 
-            ruleScreen.setDisable(false);
-            ruleScreen.setVisible(true);
-
-        } else {
-
-            ruleScreen.setDisable(true);
-            ruleScreen.setVisible(false);
-
-        }
 
     }
 

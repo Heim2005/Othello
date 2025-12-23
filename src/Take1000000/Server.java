@@ -222,13 +222,13 @@ public class Server extends Application implements BoardScore {
                     toPlayer1.writeInt(999);
                     toPlayer2.writeInt(999);
 
-                    endConditions(fromPlayer1,fromPlayer2,toPlayer1,toPlayer2);
-
                     fromPlayer1.readInt();
                     fromPlayer2.readInt();
 
                     toPlayer1.writeInt(999);
                     toPlayer2.writeInt(999);
+
+                    endConditions(fromPlayer1,fromPlayer2,toPlayer1,toPlayer2);
 
                     fromPlayer1.readInt();
                     fromPlayer2.readInt();
