@@ -1,5 +1,5 @@
 /// Caleb Heim
-
+/// the spaces taht make up the board
 
 package Take1000000;
 
@@ -13,17 +13,19 @@ public class Spaces extends StackPane {
 
     protected Rectangle box = new Rectangle();
 
+    /// coloring for actions
     private Color idle = new Color(0.85,0.92,0.87,1);
     private Color hover = new Color(0.56,0.74,0.6,1);
 
-    private int[] yx;
+    private int[] yx; /// stores coordinates
 
-    private boolean occupied = false;
+    private boolean occupied = false; /// is there a piece on space?
 
-    private int occupiedBy = 0;
+    private int occupiedBy = 0; /// who is on
 
     private boolean canPlay;
 
+    /// constructor for space
     public Spaces(int[] yx) {
 
         canPlay = false;
@@ -46,7 +48,7 @@ public class Spaces extends StackPane {
 
         getChildren().add(box);
 
-
+        /// actions to preform
         setOnMouseEntered(e -> onHover());
         setOnMouseExited(e -> onNotHover());
         setOnMousePressed(e -> onPress());
@@ -66,6 +68,7 @@ public class Spaces extends StackPane {
 //        return box;
 //    }
 
+    /// sets back to original color when mouse not over
     public void onNotHover() {
         box.setFill(idle);
 
@@ -73,6 +76,7 @@ public class Spaces extends StackPane {
 
     //if(Play.getBoard().checkPlayable(Play.getPiece().getPlayerNum())[yx[0]][yx[1]])
 
+    /// when mouse over and it is playable, the color darkens
     public void onHover() {
 
 //        boolean q = Play.getTurn();
@@ -91,6 +95,7 @@ public class Spaces extends StackPane {
 
     }
 
+    /// actions for when a playable space is pressed
     public void onPress(){
 
         //System.out.println("presss");
@@ -128,6 +133,7 @@ public class Spaces extends StackPane {
         return yx;
     }
 
+    /// other player preformed an action
     public void otherSidePress(int c){
 
         Play.getPiece().placeOppPiece(c, this);

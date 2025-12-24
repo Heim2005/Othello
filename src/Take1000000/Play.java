@@ -1,5 +1,8 @@
 /// Caleb Heim
-
+/// This is the clients that play the game with the help of the server
+/// lots of comments left there...
+/// also, the volatile, private, protected, etc. are all over the place.
+/// but they work, so I am not messing with them
 
 package Take1000000;
 
@@ -32,31 +35,39 @@ import static javafx.geometry.Pos.TOP_CENTER;
 
 public class Play extends Application {
 
-    int port = 8000;
-    String host = "localhost";
+    int port = 8000; /// can change host here
+    String host = "localhost"; /// can change host here
 
-
+    /// inputs and outputs from server
     private DataInputStream fromServer;
     private DataOutputStream toServer;
 
-    private StackPane root;
+    private StackPane root; /// visuals
 
-    protected static boolean turn = false;
+    protected static boolean turn = false; /// is turn?
 
-    private static Piece piece;
+    private static Piece piece; /// players piece
 
+
+    /// screen for waiting for second player to join
     StackPane waitScreen = new StackPane();
 
+    /// screen displayed when not players turn
     StackPane turnWait = new StackPane();
 
+    /// screen that shows rules at start
     StackPane ruleScreen = new StackPane();
 
+    /// makes waiting for a play cleaner and safer
     private static final Object lock = new Object();
 
+    /// this stores the new piece placed data (like where it is placed)
     volatile static int[] newData = null;
 
+    /// this is the game board
     private static Board board;
 
+    /// if player 1 won, player 2 won, or they tied
     private boolean win1 = false;
     private boolean win2 = false;
     private boolean draw = false;
@@ -64,11 +75,14 @@ public class Play extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
+        /// visual/ scene root
         root = new StackPane();
 
+        /// adds board to root
         board = new Board(root);
         //board.getGrid().setPadding(new Insets(100,100,100,100));
 
+        /// bottom text set up
         Text youAre = new Text("You Are: ");
         youAre.setFont(Font.font("Comic Sans MS", FontWeight.BOLD, 30));
         youAre.setFill(new Color(0.59, 0.78, 0.64, 1));
@@ -81,6 +95,8 @@ public class Play extends Application {
         //board.getGrid().setAlignment(Pos.CENTER);
 
         //root.getChildren().add(board.getGrid());
+
+        /// chips that start on the board (1 for each section)
         Piece startPiece1 = new Piece(1);
         board.getSpace(3, 3).setOccupied(startPiece1);
         board.getSpace(3, 3).setOccupiedBy(startPiece1);
@@ -105,6 +121,7 @@ public class Play extends Application {
         startPiece4.placeChip(board.getSpace(4, 3));
         BoardScore.updateScore(new int[]{4, 3}, startPiece4);
 
+        /// scene and stage set up
         Scene scene = new Scene(root, 750, 825);
         stage.setTitle("Othello");
         stage.setScene(scene);
@@ -114,17 +131,15 @@ public class Play extends Application {
         stage.show();
 
 
+        /// initially turns on waiting screen
         waitingScreen(true);
         //System.out.println("huh");
+        /// makes turn waiter screen but turns it off
         turnWaiter();
         turnWaiter(false);
 
-
-
-
+        /// runs!!!
         runClient(stage);
-
-
 
     }
 
@@ -132,21 +147,20 @@ public class Play extends Application {
 
         try {
 
-            // Create a socket to connect to the server
+            /// creates socket and tries to connect it
             Socket socket = null;
 
             socket = new Socket(host, port);
 
 
-            // Create an input stream to receive data from the server
+            /// input and output stream to send and receive data from server
             fromServer = new DataInputStream(socket.getInputStream());
 
-            // Create an output stream to send data to the server
             toServer = new DataOutputStream(socket.getOutputStream());
         } catch (Exception ex) {
 
 
-            stage.close();
+            stage.close(); /// force crashes if no server found
 
             //ex.printStackTrace();
         }
@@ -154,69 +168,80 @@ public class Play extends Application {
         new Thread(() -> {
             try {
 
-                // Get notification from the server
+                /// gets player number from server
                 int player = fromServer.readInt();
 
-                System.out.println("Player " + player);
+                System.out.println("Player " + player);/// debug
 
-                // Am I player 1 or 2?
+                /// if player 1
                 if (player == 1) {
 
                     //System.out.println("working" + player);
 
+                    ///  creates a piece for player 1
                     piece = new Piece(1);
 
                     //turn = true;
 
 
-//                    Platform.runLater(() -> {
-//                        lblTile.setText("Player 1 with token 'X'");
-//                        lblStatus.setText("Waiting for player 2 to join");
-//                    });
+                    /// waits for player 2 to join
+                    fromServer.readInt();
 
-                    // Receive startup notification from the server
-                    fromServer.readInt(); // Whatever read is ignored
-
-                    // The other player has joined
+                    /// turns off waiting screen
                     Platform.runLater(() -> waitingScreen(false));
 
 
                     //Platform.runLater(() -> turnSwap());
                     //waitingScreen(false);
-                } else if (player == 2) {
+                }
+                /// if player 2
+                else if (player == 2) {
 
                     //System.out.println("working" + player);
 
+                    /// creates piece for player 2
                     piece = new Piece(2);
 
                     //turn = false;
 
+                    /// turns of waiting screen
+                    ///(It is never really visible because it happens so fast)
                     Platform.runLater(() -> waitingScreen(false));
                     //waitingScreen(false);
 
                 }
 
+                /// text at bottom that shows player info
                 Platform.runLater(this::showWhatPlayer);
 
+                /// useless probably...
                 Platform.runLater(() -> waitingScreen(false));
 
+                /// displays rule screen
                 Platform.runLater(this::rules);
 
-                boolean playLoop = true;
+                boolean playLoop = true; /// could have just been a while true...
 
+                /// gameplay loop
                 while (playLoop) {
 
+                    /// syncing
                     toServer.writeInt(999);
                     fromServer.readInt();
 
+                    /// checks to see what moves the player can make
+                    /// only lets the player play on those spaces
                     Platform.runLater(() -> board.checkPlayable(piece.getPlayerNum()));
                     //board.checkPlayable(piece.getPlayerNum());
 
+                    /// sync
                     toServer.writeInt(999);
                     fromServer.readInt();
 
+                    /// checks with server to see if gema is over
                     endConditions(toServer, fromServer);
 
+                    /// winning screens for if game is over
                     Platform.runLater(() -> {
 
                         if( win1 || win2 || draw){
@@ -245,20 +270,19 @@ public class Play extends Application {
 
                             }
 
-
                             stack.getChildren().addAll(r, t);
 
                             root.getChildren().add(stack);
-
 
                         }
 
                     });
 
+                    /// sync
                     toServer.writeInt(999);
                     fromServer.readInt();
 
-                    newData = null;
+                    newData = null; ///starts move data empty
 
                     fromServer.readInt();         ///       ///A
                     //System.out.println("a" + player); ///1
@@ -266,9 +290,10 @@ public class Play extends Application {
 
                     //toServer.writeBoolean(turn);  ///2       ///B
                     //System.out.println("b" + player);
+                    /// updates turn info
                     turn = fromServer.readBoolean();
 
-
+                    /// stores what to be flipped(color changed)
                     List<int[]> list = new ArrayList<>();
 
                     fromServer.readInt(); //fillllerr
@@ -280,7 +305,7 @@ public class Play extends Application {
                         toServer.writeInt(999);
                         fromServer.readInt();
 
-
+                        /// indefinitely wait for move action
                         synchronized (lock) {
                             newData = null;   // reset BEFORE waiting
                             while (newData == null) {
@@ -409,7 +434,7 @@ public class Play extends Application {
 
                     //fromServer.readInt(); //sync
 
-
+                    /// flipping action
                     if (player == 1) {
                         if (!turn) {
 //                            //turn = fromServer.readBoolean();
@@ -436,7 +461,7 @@ public class Play extends Application {
 //
                     }
 
-                    Platform.runLater(() -> System.out.println(turn));
+                    Platform.runLater(() -> System.out.println(turn));///debug
 
                     //Thread.sleep(1000);
 
@@ -463,7 +488,7 @@ public class Play extends Application {
 
     }
 
-
+    /// screen for waiting for player 2
     public void waitingScreen(boolean up) {
 
         if (up) {
@@ -489,6 +514,7 @@ public class Play extends Application {
 
     }
 
+    /// screen for waiting turn
     public void turnWaiter() {
 
         Rectangle rec = new Rectangle(800, 900);
@@ -504,6 +530,7 @@ public class Play extends Application {
 
     }
 
+    /// makes the turn screen go on and off
     public void turnWaiter(boolean up) {
 
         if (up) {
@@ -522,6 +549,7 @@ public class Play extends Application {
 
     }
 
+    ///getter
     public static Piece getPiece() {
         return piece;
     }
@@ -567,7 +595,7 @@ public class Play extends Application {
 //        }
 //    }
 
-
+    /// when space is clicked -> newData info is updated
     public static void updater(int[] i, Piece p) {
         synchronized (lock) {
             newData = new int[]{ i[0], i[1], p.getPlayerNum() };
@@ -576,6 +604,7 @@ public class Play extends Application {
         }
     }
 
+    /// visuals for what player you are at bottom of screen
     public void showWhatPlayer() {
 
         Text youAre = new Text("Player " + piece.getPlayerNum());
@@ -594,10 +623,12 @@ public class Play extends Application {
 
     }
 
+    ///  dead
     public static Board getBoard() {
         return board;
     }
 
+    /// is over?
     public void endConditions(DataOutputStream toServer, DataInputStream fromServer) throws IOException {
 
         //toServer.writeInt(Score.score);
@@ -612,11 +643,12 @@ public class Play extends Application {
 
     }
 
+    /// Important
     public static void main(String[] args) {
         launch(args);
     }
 
-
+    /// rule screen
     public void rules() {
 
         Rectangle rRec = new Rectangle(800, 900);
@@ -644,10 +676,5 @@ public class Play extends Application {
         ruleScreen.setOnMouseClicked(e -> root.getChildren().remove(ruleScreen));
     }
 
-    public void rules(boolean up) {
-
-
-
-    }
 
 }

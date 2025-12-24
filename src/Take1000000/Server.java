@@ -1,5 +1,6 @@
 /// Caleb Heim
-
+/// This is the Server for the Othello game
+/// I left a lot of comments in because getting rid of them scares me a little.
 package Take1000000;
 
 import javafx.application.Application;
@@ -23,24 +24,26 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+/// SERVER!!!
 public class Server extends Application implements BoardScore {
 
-    int port = 8000;
+    int port = 8000; /// port can be changed here
 
-    public static boolean p1Stuck = false;
-    public static boolean p2Stuck = false;
+    public static boolean p1Stuck = false; /// if player 1 cant play
+    public static boolean p2Stuck = false; /// if player 2 cant play
 
-    volatile static boolean win1 = false;
-    volatile static boolean win2 = false;
+    volatile static boolean win1 = false; /// if player 1 won
+    volatile static boolean win2 = false; /// if player 2 won
 
-    volatile static boolean draw = false;
+    volatile static boolean draw = false; /// if it ends in a tie
 
    // volatile static int p1Score = 2;
    // volatile static int p2Score = 2;
 
-    private int players = 0;
-    private boolean lastAction = false;
+    //private int players = 0;
+    //private boolean lastAction = false;
 
+    /// visual stuff
     private final StackPane sPane = new StackPane();
     private final HBox hbox = new HBox();
     private final HBox hbox2 = new HBox();
@@ -48,31 +51,35 @@ public class Server extends Application implements BoardScore {
     private final Rectangle b1 = new Rectangle(175,175);
     private final Rectangle b2 = new Rectangle(175,175);
 
+    /// coloring for the server interface
     private Color idle = new Color(1,1,1,1);
     private Color inPlay = new Color(0.612,1,0.447,1);
 
+    /// just shows the color chips to teh players
     private Circle cOne;
     private Circle cTwo;
 
+    /// for switching players turns
     private boolean player1Turn = true;
     private boolean player2Turn = false;
 
-    private int checkNet = 0;
+    //private int checkNet = 0;
 
 
     @Override
     public void start(Stage stage) throws Exception {
 
-        design();
+        design(); /// visuals
 
+        /// stage/scene set up
         Scene scene = new Scene(sPane,500,300);
-
         stage.setTitle("Othello Server");
         stage.setScene(scene);
         scene.setFill(new Color(0.90,0.86,0.98,1));
         stage.setResizable(false);
         stage.show();
 
+        /// sets the original 4 chips to be on the board at the start
         BoardScore.updateScore(new int[]{3,3},1);
         BoardScore.updateScore(new int[]{4,4},1);
         BoardScore.updateScore(new int[]{3,4},2);
@@ -80,17 +87,19 @@ public class Server extends Application implements BoardScore {
 
         new Thread( () -> {
             try {
-                ServerSocket serverSocket = new ServerSocket(port);
+                ServerSocket serverSocket = new ServerSocket(port); ///starts server socket
 //                Platform.runLater(() -> taLog.appendText(new Date() +
 //                        ": Server started at socket 8000\n"));
 
-                // Ready to create a session for every two players
+                /// ready for connections
                 while (true) {
 //                    Platform.runLater(() -> taLog.appendText(new Date() +
 //                            ": Wait for players to join session " + sessionNo + '\n'));
 
+                    /// gets first client
                     Socket player1 = serverSocket.accept();//player 1 joins
 
+                    /// tells first client that they are player 1
                     new DataOutputStream(player1.getOutputStream()).writeInt(1);
 
 
@@ -101,38 +110,27 @@ public class Server extends Application implements BoardScore {
                     //new DataOutputStream(player1.getOutputStream()).writeInt(1);
 
 
-                    Platform.runLater(() -> {
-
-                        //System.out.println("1");
-                    });
-
                     //new DataOutputStream(player1.getOutputStream()).writeInt(0);
 
-                    // Notify that the player is Player 1
                     //new DataOutputStream(player1.getOutputStream()).writeInt(1);
 
-
+                    /// accepts the second client
                     Socket player2 = serverSocket.accept(); //player 2 joins
 
-
-                    Platform.runLater(() -> {
-                        //System.out.println("2");
-                    });
-
-
+                    /// tells second client that they are player 2
                     new DataOutputStream(player2.getOutputStream()).writeInt(2);
 
-
+                    /// green marker that shows whos turn it is
                     Platform.runLater(() -> {
 
-                        //lastAction = true;
                         b1.setStrokeWidth(15);
-
 
                     });
 
+                    /// to tell player 1 that player 2 has connected
                     new DataOutputStream(player1.getOutputStream()).writeInt(0);
 
+                    /// runs
                     new Thread(new WhenRan(player1, player2)).start();
 
                 }
@@ -145,10 +143,12 @@ public class Server extends Application implements BoardScore {
 
     }
 
+    /// how everything runs
     public static void main(String[] args) {
         launch(args);
     }
 
+    /// dead
     public void moveFix(){
 
         cOne.setTranslateX(0);
@@ -156,6 +156,7 @@ public class Server extends Application implements BoardScore {
 
     }
 
+    /// just switches which player the green box goes around.
     public void turn(Rectangle r){
 
 //        b1.setFill(idle);
@@ -170,10 +171,12 @@ public class Server extends Application implements BoardScore {
         //moveFix();
     }
 
+    /// starts running here
     class WhenRan implements Runnable{
-        private Socket player1;
-        private Socket player2;
+        private Socket player1; /// player 1s client socket
+        private Socket player2; /// player 2s client socket
 
+        /// dead
         private DataInputStream fromPlayer1;
         private DataOutputStream toPlayer1;
         private DataInputStream fromPlayer2;
@@ -184,9 +187,9 @@ public class Server extends Application implements BoardScore {
 
         public WhenRan(Socket p1, Socket p2){
 
+            /// sets sockets to top of class
             player1 = p1;
             player2 = p2;
-
 
         }
 
@@ -195,7 +198,7 @@ public class Server extends Application implements BoardScore {
         public void run() {
 
             try {
-                // Create data input and output streams
+                /// creates data input and output streams
                 DataInputStream fromPlayer1 = new DataInputStream(
                         player1.getInputStream());
                 DataOutputStream toPlayer1 = new DataOutputStream(
@@ -205,17 +208,17 @@ public class Server extends Application implements BoardScore {
                 DataOutputStream toPlayer2 = new DataOutputStream(
                         player2.getOutputStream());
 
-                // Write anything to notify player 1 to start
-                // This is just to let player 1 know to start
+
+                // this is just to let player 1 know to start
                 //toPlayer1.writeInt(1);
 
-                // Continuously serve the players and determine and report
-                // the game status to the players
+
+                /// gameplay loop
                 while (true) {
-                    // Receive a move from player 1
 
-                    BoardScore.test();
+                    BoardScore.test();///debugging (scary to remove)
 
+                    /// syncing
                     fromPlayer1.readInt();
                     fromPlayer2.readInt();
 
@@ -228,8 +231,10 @@ public class Server extends Application implements BoardScore {
                     toPlayer1.writeInt(999);
                     toPlayer2.writeInt(999);
 
+                    /// checks with clients to see if game is over
                     endConditions(fromPlayer1,fromPlayer2,toPlayer1,toPlayer2);
 
+                    /// sync
                     fromPlayer1.readInt();
                     fromPlayer2.readInt();
 
@@ -243,6 +248,7 @@ public class Server extends Application implements BoardScore {
                     toPlayer2.writeInt(2); ///1
                     //System.out.println("a2");
 
+                    /// tells players if it is their turn  v
                     /// B
                     //boolean p1Turn = fromPlayer1.readBoolean(); ///2
                     System.out.println("1 turn: " + player1Turn);
@@ -268,7 +274,7 @@ public class Server extends Application implements BoardScore {
 //                        break;
 //                    }
 
-                    List<int[]> list = new ArrayList<>();
+                    List<int[]> list = new ArrayList<>(); ///stores what to be flipped
 
                     toPlayer1.writeInt(100);  //empty
                     toPlayer2.writeInt(100);   //filler
@@ -445,8 +451,9 @@ public class Server extends Application implements BoardScore {
 
                     }
 
-                    Thread.sleep(1000);
+                    Thread.sleep(1000); ///helps
 
+                    /// swaps turns
                     if(player1Turn){
                         player1Turn = false;
                         player2Turn = true;
@@ -467,6 +474,7 @@ public class Server extends Application implements BoardScore {
         }
     }
 
+    /// visuals of server
     public void design(){
 
         StackPane s1 = new StackPane();
@@ -547,6 +555,7 @@ public class Server extends Application implements BoardScore {
 
     }
 
+    /// to see if game is over
     public void endConditions(DataInputStream fromPlayer1, DataInputStream fromPlayer2, DataOutputStream toPlayer1, DataOutputStream toPlayer2) throws IOException {
 
 

@@ -1,12 +1,14 @@
 /// Caleb Heim
+/// I regret making this interface....
+/// completely not needed, but oh well
 
 package Take1000000;
 
 
-//Stores the score -- kind of a mess
+/// Stores the score -- kind of a mess
 public interface BoardScore {
 
-    public static int[][] score = new int[8][8];
+    public static int[][] score = new int[8][8]; ///board keeping track of who is where
 
     public static int[] nextYx = {-1,-1};
 
@@ -28,6 +30,7 @@ public interface BoardScore {
     *    [] [] [] [] [] [] [] []
     */
 
+    /// updates the score variable
     public static void updateScore(int[] position, Piece piece){
 
         score[position[0]][position[1]] = piece.getPlayerNum();
@@ -45,6 +48,7 @@ public interface BoardScore {
         //test();
     }
 
+    /// updates the score variable as well
     public static void updateScore(int[] position, int num){
 
         score[position[0]][position[1]] = num;
@@ -63,7 +67,7 @@ public interface BoardScore {
     }
 
 
-
+    /// debug
     public static void test(){
 
         for(int i = 0; i < 8; i ++){
@@ -78,6 +82,8 @@ public interface BoardScore {
 
 }
 
+/// literally ended up only being used to keep track of if a player cannot move anymore
+/// pretty much not needed tbh
 class Score{
 
 //    volatile static boolean p1Stuck = false;

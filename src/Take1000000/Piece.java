@@ -1,4 +1,5 @@
 /// Caleb Heim
+/// class for each players piece
 
 package Take1000000;
 
@@ -9,15 +10,15 @@ import javafx.scene.shape.Circle;
 //class for the players 'Go' pieces
 public class Piece {
 
-    private Color color;//black or white depending on player
+    private Color color;/// dark or light depending on player
     //private Color outline;
-    private int playerNum; //make testing whos turn easier
+    private int playerNum; /// make testing whos turn easier
 
     //protected Circle chip;
     private boolean turn;
 
 
-    // constructor - used to set colors of each player
+    /// constructor - used to set colors of each player
     public Piece (int player){
 
         if(player == 1){
@@ -53,6 +54,7 @@ public class Piece {
 
 
 
+    /// whos chip
     public int getPlayerNum(){
         return playerNum;
     }
@@ -69,7 +71,7 @@ public class Piece {
         color = c;
     }
 
-
+    /// visuals of placing a chip
     public Circle placeChip(StackPane p){
 
         Circle c = new Circle();
@@ -88,7 +90,7 @@ public class Piece {
         return c;
 
     }
-    //places other players piece
+    /// places other players piece visually
     public void placeOppPiece(int c, StackPane p){
 
         //System.out.println(c);

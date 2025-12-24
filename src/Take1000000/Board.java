@@ -1,5 +1,5 @@
 /// Caleb Heim
-
+/// the board that will be played on
 
 package Take1000000;
 
@@ -68,7 +68,7 @@ public class Board {
     /// is it a playable option??
 
 
-    //checks if move is possible
+    /// checks if move is possible
     public boolean[][] checkPlayable(int player) {
 
         playable = new boolean[8][8];
@@ -203,7 +203,7 @@ public class Board {
 //        return allFlips;
 //    }
 
-    //check who flips
+    /// check who flips
     public List<int[]> check(int[] position, Piece piece){
 
         List<int[]> allFlips = new ArrayList<>();
@@ -273,7 +273,7 @@ public class Board {
         return allFlips;
     }
 
-    //flips chips
+    /// flips chips
     public void flipper(List<int[]> list, int player){
 
         for(int[] i : list){
